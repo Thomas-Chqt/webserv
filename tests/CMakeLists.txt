@@ -36,6 +36,7 @@ FetchContent_MakeAvailable(fuzztest)
 
 include(GoogleTest)
 
+fuzztest_setup_fuzzing_flags()
 add_executable(webserv-test webserv-tests.cpp)
 
 target_include_directories(webserv-test PRIVATE ${cpp-httplib_SOURCE_DIR})
