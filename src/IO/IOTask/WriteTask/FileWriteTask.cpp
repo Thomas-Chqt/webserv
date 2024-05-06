@@ -6,7 +6,7 @@
 /*   By: tchoquet <tchoquet@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/21 17:32:57 by tchoquet          #+#    #+#             */
-/*   Updated: 2024/04/26 16:18:22 by tchoquet         ###   ########.fr       */
+/*   Updated: 2024/05/06 12:23:31 by tchoquet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,13 +30,13 @@ void FileWriteTask::write()
     
     if (writeLen < 0)
     {
-        log << "Error while writing to file " << m_resource->path() << " (fd: " << fd() << "): " << std::strerror(errno) << '\n';
+        logg << "Error while writing to file " << m_resource->path() << " (fd: " << fd() << "): " << std::strerror(errno) << '\n';
         m_handler->makeErrorResponse(500);
     }
 
     else if (writeLen == 0)
     {
-        log << "No data write to file " << m_resource->path() << " (fd: " << fd() << ")\n";
+        logg << "No data write to file " << m_resource->path() << " (fd: " << fd() << ")\n";
         if (m_idx < m_request->body.size())
             m_handler->makeErrorResponse(500);
         else
@@ -45,7 +45,7 @@ void FileWriteTask::write()
 
     else
     {
-        log << writeLen << " bytes write to file " << m_resource->path() << " (fd: " << fd() << ")\n";
+        logg << writeLen << " bytes write to file " << m_resource->path() << " (fd: " << fd() << ")\n";
         m_idx += writeLen;
         if (m_idx < m_request->body.size())
             return;

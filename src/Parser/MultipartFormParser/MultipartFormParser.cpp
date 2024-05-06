@@ -33,7 +33,7 @@ bool MultipartFormParser::searchBoundary(const std::vector<Byte>& byteVec, const
 	if (searchStrFromByteVec(byteVec, boundary) == false)
 	{
 		m_isBadRequest = true;
-		log << "[error] MultipartFormParser: Expected boudary dosen't exist" << "\n";
+		logg << "[error] MultipartFormParser: Expected boudary dosen't exist" << "\n";
 		return (false);
 	}
 	return (true);
@@ -59,7 +59,7 @@ void	MultipartFormParser::parseHeader(const std::vector<Byte>& requestBody)
 		if (headerParser.isBadRequest())
 		{
 			m_isBadRequest = true;
-			log << "[error] MultipartFormParser: Invalid header" << "\n";
+			logg << "[error] MultipartFormParser: Invalid header" << "\n";
 			return ;
 		}
 		++m_idx;
@@ -94,7 +94,7 @@ void	MultipartFormParser::parseHeader(const std::vector<Byte>& requestBody)
 	else
 	{
 		m_isBadRequest = true;
-		log << "[error] MultipartFormParser: Content-Disposition not found" << "\n";
+		logg << "[error] MultipartFormParser: Content-Disposition not found" << "\n";
 		return ;
 	}
 	m_data.push_back(newData);
@@ -116,7 +116,7 @@ void	MultipartFormParser::checkDatas(void)
 			|| m_data[i].dispositionParams.find("name") == m_data[i].dispositionParams.end())
 		{
 			m_isBadRequest = true;
-			log << "[error] MultipartFormParser: Invalid disposition type or name" << "\n";
+			logg << "[error] MultipartFormParser: Invalid disposition type or name" << "\n";
 		}
 	}
 }
@@ -144,7 +144,7 @@ std::vector<MultipartFormData>	MultipartFormParser::parse(const std::vector<Byte
 	if (m_isEndFlag == false)
 	{
 		m_isBadRequest = true;
-		log << "[error] MultipartFormParser: Ending boundary not found" << "\n";
+		logg << "[error] MultipartFormParser: Ending boundary not found" << "\n";
 		return (m_data);
 	}
 	checkDatas();

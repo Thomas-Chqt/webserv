@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   BuiltinCGIUpload.cpp                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sotanaka <sotanaka@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tchoquet <tchoquet@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/17 15:58:50 by tchoquet          #+#    #+#             */
-/*   Updated: 2024/04/26 15:19:52 by sotanaka         ###   ########.fr       */
+/*   Updated: 2024/05/06 12:23:31 by tchoquet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ int parseSingleFieldVal(const std::string& fieldVal, HTTPFieldValue& result)
 		std::vector<std::string> param = splitByChars(strs[i], "=");
 		if (param.size() != 2)
 		{
-			log << "parseSingleFieldVal(): Invalid field value: " << fieldVal << "\n";
+			logg << "parseSingleFieldVal(): Invalid field value: " << fieldVal << "\n";
 			return -1;
 			break;
 		}
@@ -72,7 +72,7 @@ static bool getStdinToByteVector(std::vector<Byte>& body)
         {
             if (byteRead == -1)
             {
-                log << "builtinCGIUpload(): read() error" << "\n";
+                logg << "builtinCGIUpload(): read() error" << "\n";
                 return false;
             }
             else
@@ -94,14 +94,14 @@ static std::string getBoundaryFromValue(const std::string& contentType)
         std::map<std::string, std::string>::const_iterator boundaryIt = httpFieldValue.parameters.find("boundary");
         if (boundaryIt == httpFieldValue.parameters.end())
         {
-            log << "builtinCGIUpload(): boundary not found\n"; 
+            logg << "builtinCGIUpload(): boundary not found\n"; 
             return ("");
         }
         return (boundaryIt->second);
     }
     else
     {
-        log << "builtinCGIUpload(): Content-Type is not multipart/form-data\n";
+        logg << "builtinCGIUpload(): Content-Type is not multipart/form-data\n";
         return ("");
     }
 }
@@ -110,12 +110,12 @@ static bool isAccessableDirectory(const std::string& dir)
 {
     if (access(RMV_LAST_SLASH(dir).c_str(), F_OK) != 0)
     {
-        log << "Directory does not exist: " << dir << '\n';
+        logg << "Directory does not exist: " << dir << '\n';
         return (false);
     }
     if (access(RMV_LAST_SLASH(dir).c_str(), W_OK) != 0)
     {
-        log << "No write access to directory: " << dir << '\n';
+        logg << "No write access to directory: " << dir << '\n';
         return (false);
     }
     return (true);
@@ -126,14 +126,14 @@ static void createNewFile(const std::string& filePath, const char* data, size_t 
     int fd = ::open(filePath.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH | O_NONBLOCK);
     if (fd < 0)
     {
-        log << "builtinCGIUpload(): open(): " + std::string(std::strerror(errno));
+        logg << "builtinCGIUpload(): open(): " + std::string(std::strerror(errno));
         return ;
     }
     ssize_t writeLen = ::write(fd, data, lenData);
     if (writeLen == -1 || (size_t)writeLen != lenData)
-        log << "builtinCGIUpload(): write() failed\n";
+        logg << "builtinCGIUpload(): write() failed\n";
     if (::close(fd) < 0)
-        log << "builtinCGIUpload(): close(): " + std::string(std::strerror(errno)) << "\n";
+        logg << "builtinCGIUpload(): close(): " + std::string(std::strerror(errno)) << "\n";
 }
 
 void builtinCGIUpload(const std::map<std::string, std::string>& headers)
@@ -150,7 +150,7 @@ void builtinCGIUpload(const std::map<std::string, std::string>& headers)
         boundary = getBoundaryFromValue(contentTypeIt->second);
     else
     {
-        log << "builtinCGIUpload(): CONTENT_TYPE not found\n";
+        logg << "builtinCGIUpload(): CONTENT_TYPE not found\n";
         return ;
     }
     if (boundary.empty())
@@ -162,7 +162,7 @@ void builtinCGIUpload(const std::map<std::string, std::string>& headers)
         return ;
     else if (pathIt == headers.end())
     {
-        log << "builtinCGIUpload(): UPLOAD_PATH not found\n";
+        logg << "builtinCGIUpload(): UPLOAD_PATH not found\n";
         return ;
     }
     dir = pathIt->second;
@@ -186,7 +186,7 @@ void builtinCGIUpload(const std::map<std::string, std::string>& headers)
         }
         else
         {
-            log << "builtinCGIUpload(): filename not found\n";
+            logg << "builtinCGIUpload(): filename not found\n";
             return ;
         }
     }

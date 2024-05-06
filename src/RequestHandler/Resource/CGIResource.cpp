@@ -6,7 +6,7 @@
 /*   By: tchoquet <tchoquet@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/31 20:56:43 by tchoquet          #+#    #+#             */
-/*   Updated: 2024/04/26 13:10:39 by tchoquet         ###   ########.fr       */
+/*   Updated: 2024/05/06 12:23:31 by tchoquet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,11 +36,11 @@ int CGIResource::open()
     FileDescriptor fromCGIfds[2] = {};
 
     if (pipeWNB(toCGIfds) < 0 || pipeRNB(fromCGIfds))
-        log << "pipe(): " << std::strerror(errno) << '\n';   
+        logg << "pipe(): " << std::strerror(errno) << '\n';   
 
     m_pid = fork();
     if (m_pid < 0)
-        log << "fork(): " << std::strerror(errno) << '\n';
+        logg << "fork(): " << std::strerror(errno) << '\n';
 
     if (m_pid == 0)
     {
@@ -121,7 +121,7 @@ int CGIResource::open()
             m_writeFd = toCGIfds[WRITE_END];
             m_readFd = fromCGIfds[READ_END];
 
-            log << "CGI process for script \"" << m_path << "\" created (read fd: " << m_readFd << ", write fd: " << m_writeFd << ")\n";
+            logg << "CGI process for script \"" << m_path << "\" created (read fd: " << m_readFd << ", write fd: " << m_writeFd << ")\n";
             return 0;
         }
         else

@@ -6,7 +6,7 @@
 /*   By: tchoquet <tchoquet@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 15:46:39 by tchoquet          #+#    #+#             */
-/*   Updated: 2024/04/20 08:59:18 by tchoquet         ###   ########.fr       */
+/*   Updated: 2024/05/06 12:23:31 by tchoquet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ MasterSocket::MasterSocket(uint16 port) : m_fileDescriptor(webserv::socket(AF_IN
         if (listen(m_fileDescriptor, SOMAXCONN) < 0)
             throw std::runtime_error("listen: " + std::string(std::strerror(errno)));
 
-        log << "Master socket created for port: " << port << '\n';
+        logg << "Master socket created for port: " << port << '\n';
     }
     else
         throw std::runtime_error("socket: " + std::string(std::strerror(errno)));
@@ -52,7 +52,7 @@ ClientSocketPtr MasterSocket::acceptNewClient(const MasterSocketPtr& _this) cons
     if (FileDescriptor newClientFd = accept(m_fileDescriptor, &address, &len))
     {
         ClientSocket* clientSocket = new ClientSocket(newClientFd, _this, (struct sockaddr_in&)address);
-        log << "Connection from ip " << clientSocket->ipAddress() << " accepted and assigned to fd: " << newClientFd << '\n';
+        logg << "Connection from ip " << clientSocket->ipAddress() << " accepted and assigned to fd: " << newClientFd << '\n';
         return clientSocket;
     }
     return NULL;

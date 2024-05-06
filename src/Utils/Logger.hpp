@@ -6,7 +6,7 @@
 /*   By: tchoquet <tchoquet@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/11 15:51:43 by tchoquet          #+#    #+#             */
-/*   Updated: 2024/04/20 15:13:55 by tchoquet         ###   ########.fr       */
+/*   Updated: 2024/05/06 12:23:35 by tchoquet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,8 +21,8 @@
 
 #include "Utils/Time.hpp"
 
-#ifndef log
-    #define log webserv::Logger::shared()
+#ifndef logg
+    #define logg webserv::Logger::shared()
 #endif // log
 
 namespace webserv

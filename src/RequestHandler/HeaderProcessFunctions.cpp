@@ -6,7 +6,7 @@
 /*   By: tchoquet <tchoquet@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/21 15:22:51 by tchoquet          #+#    #+#             */
-/*   Updated: 2024/04/23 12:55:25 by tchoquet         ###   ########.fr       */
+/*   Updated: 2024/05/06 12:23:31 by tchoquet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ int RequestHandler::processHostHeader()
     m_request->port = 80;
     if (strs.size() == 0 || 2 < strs.size())
     {
-        log << "parseHost(): Invalid Host field: " << it->second << "\n";
+        logg << "parseHost(): Invalid Host field: " << it->second << "\n";
         return 400;
     }
 

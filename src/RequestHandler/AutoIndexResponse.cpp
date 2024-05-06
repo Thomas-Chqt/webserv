@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   AutoIndexResponse.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sotanaka <sotanaka@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tchoquet <tchoquet@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/23 16:50:25 by tchoquet          #+#    #+#             */
-/*   Updated: 2024/04/26 14:37:44 by sotanaka         ###   ########.fr       */
+/*   Updated: 2024/05/06 12:23:31 by tchoquet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,7 @@ static DIR* opendirWrap(const std::string& path, int& responseCode)
     dir = opendir(path.c_str());
     if (dir == NULL)
     {
-        log << ("[error] opendir(): " + std::string(std::strerror(errno)));
+        logg << ("[error] opendir(): " + std::string(std::strerror(errno)));
         if (errno == EACCES)
             responseCode = 403;
         else if (errno == EMFILE || errno == ENFILE || errno == ENOMEM)

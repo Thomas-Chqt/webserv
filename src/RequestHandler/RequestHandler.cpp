@@ -6,7 +6,7 @@
 /*   By: tchoquet <tchoquet@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/09 18:32:54 by tchoquet          #+#    #+#             */
-/*   Updated: 2024/04/30 14:55:38 by tchoquet         ###   ########.fr       */
+/*   Updated: 2024/05/06 12:23:31 by tchoquet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ RequestHandler::RequestHandler(const HTTPRequestPtr& request, const ClientSocket
 
 int RequestHandler::processRequestLine()
 {
-    log << "processing requestLine\n";
+    logg << "processing requestLine\n";
 
     if (m_request->verMajor != 1 || m_request->verMinor != 1)
         return 505;
@@ -48,7 +48,7 @@ int RequestHandler::processHeaders()
 {
     typedef int (RequestHandler::*HeaderProcessFn)();
 
-    log << "processing headers\n";
+    logg << "processing headers\n";
 
     const HeaderProcessFn funcs[] = 
     {
@@ -78,16 +78,16 @@ int RequestHandler::processHeaders()
 void RequestHandler::internalRedirection(std::string method, std::string uri, std::string query)
 {
     if (m_internalRedirectionCount > 0)
-        log << "internal redirection to uri \"" << uri << "\"\n";
+        logg << "internal redirection to uri \"" << uri << "\"\n";
     if (m_internalRedirectionCount == 10)
     {
-        log << "too many internal redirection\n";
+        logg << "too many internal redirection\n";
         m_internalRedirectionCount++;
         return makeErrorResponse(500);
     }
     if (m_internalRedirectionCount >= 12)
     {
-        log << "too many internal redirection\n";
+        logg << "too many internal redirection\n";
         m_internalRedirectionCount++;
         return makeErrorResponse(500);
     }
@@ -116,13 +116,13 @@ void RequestHandler::internalRedirection(std::string method, std::string uri, st
 
     if (StaticFileResourcePtr staticFileResource = m_responseResource.dynamicCast<StaticFileResource>())
     {
-        log << "\"" << staticFileResource->path() << "\" is resolved as static file resource\n";
+        logg << "\"" << staticFileResource->path() << "\" is resolved as static file resource\n";
 
         if (method == "GET" || method == "HEAD")
         {
             if (staticFileResource->canRead() == false)
             {
-                log << "\"" << staticFileResource->path() << "\" cannot be read\n";
+                logg << "\"" << staticFileResource->path() << "\" cannot be read\n";
                 return makeErrorResponse(403);
             }
 
@@ -140,7 +140,7 @@ void RequestHandler::internalRedirection(std::string method, std::string uri, st
         {
             if (staticFileResource->canDelete() == false)
             {
-                log << "\"" << staticFileResource->path() << "\" cannot be delete\n";
+                logg << "\"" << staticFileResource->path() << "\" cannot be delete\n";
                 return makeErrorResponse(403);
             }
 
@@ -159,7 +159,7 @@ void RequestHandler::internalRedirection(std::string method, std::string uri, st
 
     else if (NoSuchFileResourcePtr noSuchFileResource = m_responseResource.dynamicCast<NoSuchFileResource>())
     {
-        log << "\"" << noSuchFileResource->path() << "\" is resolved as no such file resource\n";
+        logg << "\"" << noSuchFileResource->path() << "\" is resolved as no such file resource\n";
 
         if (method == "GET" || method == "HEAD")
             return makeErrorResponse(404);
@@ -176,7 +176,7 @@ void RequestHandler::internalRedirection(std::string method, std::string uri, st
                 return makeErrorResponse(413);
             if (noSuchFileResource->canCreate() == false)
             {
-                log << "\"" << noSuchFileResource->path() << "\" cannot be create\n";
+                logg << "\"" << noSuchFileResource->path() << "\" cannot be create\n";
                 return makeErrorResponse(403); // * Forbidden
             }
         }
@@ -186,24 +186,24 @@ void RequestHandler::internalRedirection(std::string method, std::string uri, st
 
     else if (DirectoryResourcePtr directoryResource = m_responseResource.dynamicCast<DirectoryResource>())
     {
-        log << "\"" << directoryResource->path() << "\" is resolved as directory resource\n";
+        logg << "\"" << directoryResource->path() << "\" is resolved as directory resource\n";
 
         if (*(--directoryResource->path().end()) != '/')
             return makeRedirectionResponse(301, uri + '/');
 
         if (method == "GET" || method == "HEAD")
         {
-            log << "trying index \"" << m_location.index  << "\"\n";
+            logg << "trying index \"" << m_location.index  << "\"\n";
 
             ResourcePtr indexResource = Resource::create(uri + m_location.index, m_location);
             if (indexResource && !indexResource.dynamicCast<NoSuchFileResource>())
                 return internalRedirection(method, uri + m_location.index, "");
 
-             log << "index not usable\n";
+             logg << "index not usable\n";
 
             if (m_location.autoindex == true && directoryResource->canRead())
             {
-                log << "using auto index\n";
+                logg << "using auto index\n";
                 makeAutoindexResponse(uri); // TODO use DirectoryResourcePtr instead of uri
                 if (m_request->method == "HEAD") // TODO not produce body when HEAD method
                     m_response->body.clear();
@@ -211,7 +211,7 @@ void RequestHandler::internalRedirection(std::string method, std::string uri, st
             }
             else
             {
-                log << "auto index not available\n";
+                logg << "auto index not available\n";
                 return makeErrorResponse(403);
             }
         }
@@ -222,7 +222,7 @@ void RequestHandler::internalRedirection(std::string method, std::string uri, st
                 return makeErrorResponse(413);
             if (directoryResource->path() == m_config.upload_path && directoryResource->canCreateFile())
             {
-                log << "resolved URI \"" << directoryResource->path() << "\" is upload path\n";
+                logg << "resolved URI \"" << directoryResource->path() << "\" is upload path\n";
                 m_responseResource = new CGIResource("Build in CGI", "", true);
                 m_responseResource.dynamicCast<CGIResource>()->setEnvp("UPLOAD_PATH", m_config.upload_path);
             }
@@ -242,14 +242,14 @@ void RequestHandler::internalRedirection(std::string method, std::string uri, st
 
     if (CGIResourcePtr cgiProg = m_responseResource.dynamicCast<CGIResource>())
     {
-        log << "\"" << cgiProg->path() << "\" is resolved as cgi resource\n";
+        logg << "\"" << cgiProg->path() << "\" is resolved as cgi resource\n";
 
         if (m_location.client_max_body_size > 0 && m_request->contentLength > m_location.client_max_body_size)
             return makeErrorResponse(413);
 
         if (cgiProg->canExec() == false)
         {
-            log << "\"" << cgiProg->path() << "\" is not executable\n";
+            logg << "\"" << cgiProg->path() << "\" is not executable\n";
             return makeErrorResponse(403); // * Forbidden
         }
         
@@ -279,7 +279,7 @@ void RequestHandler::internalRedirection(std::string method, std::string uri, st
 
 void RequestHandler::makeErrorResponse(int code)
 {
-    log << "error code " << code << '\n';
+    logg << "error code " << code << '\n';
 
     m_response->headers.erase("location");
 
@@ -317,7 +317,7 @@ void RequestHandler::makeErrorResponse(int code)
 
 void RequestHandler::makeRedirectionResponse(int code, const std::string& location)
 {
-    log << "redirection code " << code << " to \"" << location << "\"\n";
+    logg << "redirection code " << code << " to \"" << location << "\"\n";
 
     m_response->headers["location"] = location;
     m_response->headers.erase("Allow");
@@ -343,7 +343,7 @@ void RequestHandler::makeRedirectionResponse(int code, const std::string& locati
 
 void RequestHandler::runTasks(const RequestHandlerPtr& _this)
 {
-    log << "running task\n";
+    logg << "running task\n";
 
     if (m_response->isComplete)
     {
@@ -412,7 +412,7 @@ bool RequestHandler::shouldEndConnection()
     std::map<std::string, std::string>::iterator it = m_response->headers.find("Connection");
     if (it == m_response->headers.end())
     {
-        log << "Connection header field not present in response\n";
+        logg << "Connection header field not present in response\n";
         return false;
     }
 

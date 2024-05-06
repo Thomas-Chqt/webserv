@@ -6,7 +6,7 @@
 /*   By: tchoquet <tchoquet@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/06 16:15:37 by tchoquet          #+#    #+#             */
-/*   Updated: 2024/04/28 14:48:48 by tchoquet         ###   ########.fr       */
+/*   Updated: 2024/05/06 12:23:31 by tchoquet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,10 +39,10 @@ void ClientSocketWriteTask::write()
     uint32 sendLen = send(fd(), m_buffer.data() + m_idx, m_buffer.size() - m_idx, 0);
 
     if (sendLen <= 0)
-        log << "Error while sending data to client (fd: " << fd() << "): " << std::strerror(errno) << '\n';
+        logg << "Error while sending data to client (fd: " << fd() << "): " << std::strerror(errno) << '\n';
     else
     {
-        log << sendLen << " bytes send on client socket " << m_clientSocket->fileDescriptor() << '\n';
+        logg << sendLen << " bytes send on client socket " << m_clientSocket->fileDescriptor() << '\n';
         m_idx += sendLen;
         if (m_idx < m_buffer.size())
             return;
