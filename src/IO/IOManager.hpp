@@ -43,6 +43,8 @@ public:
     void eraseReadTask(IReadTask* task);
     void eraseWriteTask(IWriteTask* task);
 
+    inline bool hasPendingTask() { return m_readTasks.empty() == false || m_writeTasks.empty() == false; }
+
 private:
     inline  IOManager()/* = default*/ {}
     inline ~IOManager()/* = default*/ {}

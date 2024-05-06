@@ -6,7 +6,7 @@
 /*   By: tchoquet <tchoquet@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/06 16:04:36 by tchoquet          #+#    #+#             */
-/*   Updated: 2024/05/06 12:23:31 by tchoquet         ###   ########.fr       */
+/*   Updated: 2024/05/06 18:41:14 by tchoquet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,7 +115,7 @@ void ClientSocketReadTask::read()
 
             m_handler->runTasks(m_handler);
 
-            if (m_parser.isBadRequest() || m_handler->shouldEndConnection())
+            // if (m_parser.isBadRequest() || m_handler->shouldEndConnection())
                 break;
             
             m_request = new HTTPRequest();
