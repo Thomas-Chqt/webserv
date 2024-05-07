@@ -6,7 +6,7 @@
 /*   By: tchoquet <tchoquet@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/07 01:34:14 by tchoquet          #+#    #+#             */
-/*   Updated: 2024/05/07 15:43:25 by tchoquet         ###   ########.fr       */
+/*   Updated: 2024/05/07 19:11:41 by tchoquet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@
 
 #include "IO/IOManager.hpp"
 #include "IO/IOTask/ReadTask/ClientSocketReadTask.hpp"
+#include "http_parser.h"
 
 #ifdef NGINX_PATH
     template<const char* WEBSERV_CONF, const char* NGINX_CONF>
@@ -79,8 +80,44 @@ public:
         #endif // NGINX_PATH
     }
     
-    std::string getWebservResponse(const std::string& request, webserv::uint16 port)
+    std::pair<bool, webserv::HTTPResponse> getResponse(const std::string& request, webserv::uint16 port)
     {
+        webserv::HTTPResponse parsedResponse;
+
+        http_parser_settings parserSettings;
+
+        parserSettings.on_message_begin    = NULL;
+        parserSettings.on_url              = NULL;
+        parserSettings.on_status           = [](http_parser *parser, const char *status, unsigned long len) -> int
+        {
+            ((webserv::HTTPResponse*)parser->data)->statusDescription = std::string(status, status + len);
+            return 0;
+        };
+        parserSettings.on_header_field     = [](http_parser *parser, const char *header, unsigned long len) -> int
+        {
+            ((webserv::HTTPResponse*)parser->data)->lastHeaderField = std::string(header, header + len);
+            return 0;
+        };
+        parserSettings.on_header_value     = [](http_parser *parser, const char *value, unsigned long len) -> int
+        {
+            ((webserv::HTTPResponse*)parser->data)->headers[((webserv::HTTPResponse*)parser->data)->lastHeaderField] = std::string(value, value + len);
+            return 0;
+        };
+        parserSettings.on_headers_complete = NULL;
+        parserSettings.on_body             = [](http_parser *parser, const char *body, unsigned long len) -> int
+        {
+            ((webserv::HTTPResponse*)parser->data)->body = std::vector<webserv::Byte>(body, body + len);
+            return 0;
+        };
+        parserSettings.on_message_complete = NULL;
+        parserSettings.on_chunk_header     = NULL;
+        parserSettings.on_chunk_complete   = NULL;
+
+        std::unique_ptr<http_parser> parser = std::make_unique<http_parser>();
+        http_parser_init(parser.get(), HTTP_RESPONSE);
+
+        parser->data = &parsedResponse;
+    
         int sockfd = ::socket(AF_INET, SOCK_STREAM, 0);
 
         struct sockaddr_in server_addr = {
@@ -91,12 +128,18 @@ public:
         ::inet_pton(AF_INET, "127.0.0.1", &(server_addr.sin_addr));
 
         if(::connect(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr)) != 0)
+        {
+            ::close(sockfd);
             throw std::runtime_error("connect(): " + std::string(std::strerror(errno)));
+        }
 
         if(::send(sockfd, request.c_str(), request.length(), 0) < 0)
+        {
+            ::close(sockfd);
             throw std::runtime_error("send(): " + std::string(std::strerror(errno)));
+        }
 
-        std::string response;
+        std::string responseStr;
         webserv::Byte buff[BUFFER_SIZE];
 
         ssize_t recvLen;
@@ -105,61 +148,29 @@ public:
             recvLen = ::recv(sockfd, buff, BUFFER_SIZE, 0);
             
             if (recvLen < 0)
+            {
+                ::close(sockfd);
                 throw std::runtime_error("recv(): " + std::string(std::strerror(errno)));
+            }
+
+            size_t nparsed = http_parser_execute(parser.get(), &parserSettings, (const char *)buff, (size_t)recvLen);
+            if (nparsed != (size_t)recvLen)
+            {
+                ::close(sockfd);
+                return std::make_pair(false, parsedResponse);
+            }
 
             if (recvLen == 0)
                 break;
 
-            response.append(buff, buff + recvLen);
+            responseStr.append(buff, buff + recvLen);
         }
         while(recvLen == BUFFER_SIZE);
 
         ::close(sockfd);
 
-        return response;
+        return std::make_pair(true, parsedResponse);
     }
-
-    #ifdef NGINX_PATH
-        std::string getNginxResponse(const std::string& request, webserv::uint16 port)
-        {
-            int sockfd = ::socket(AF_INET, SOCK_STREAM, 0);
-
-            struct sockaddr_in server_addr = {
-                .sin_family = AF_INET,
-                .sin_port = htons(port)
-            };
-
-            ::inet_pton(AF_INET, "127.0.0.1", &(server_addr.sin_addr));
-
-            if(::connect(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr)) != 0)
-                throw std::runtime_error("connect(): " + std::string(std::strerror(errno)));
-
-            if(::send(sockfd, request.c_str(), request.length(), 0) < 0)
-                throw std::runtime_error("send(): " + std::string(std::strerror(errno)));
-
-            std::string response;
-            webserv::Byte buff[BUFFER_SIZE];
-
-            ssize_t recvLen;
-            do
-            {
-                recvLen = ::recv(sockfd, buff, BUFFER_SIZE, 0);
-                
-                if (recvLen < 0)
-                    throw std::runtime_error("recv(): " + std::string(std::strerror(errno)));
-
-                if (recvLen == 0)
-                    break;
-
-                response.append(buff, buff + recvLen);
-            }
-            while(recvLen == BUFFER_SIZE);
-
-            ::close(sockfd);
-
-            return response;
-        }
-    #endif // NGINX_PATH
 
     ~FixitureBase()
     {

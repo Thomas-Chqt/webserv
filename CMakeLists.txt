@@ -12,6 +12,8 @@
 
 cmake_minimum_required(VERSION 3.23)
 
+project(webserv LANGUAGES CXX C)
+
 include(FetchContent)
 
 FetchContent_Declare (
@@ -26,13 +28,13 @@ if (WEBSERV_BUILD_TESTS)
     enable_testing()
 endif()
 
-project(webserv LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 98)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_library(webserv-lib)
 add_executable(webserv)
 if (WEBSERV_BUILD_TESTS)
+    add_library(http-parser)
     add_executable(webserv-test)
 endif()
 
@@ -43,12 +45,18 @@ target_sources(webserv-lib PRIVATE "${sources}")
 target_sources(webserv PRIVATE "src/main.cpp")
 
 if (WEBSERV_BUILD_TESTS)
+    target_sources(http-parser PRIVATE tests/http-parser/http_parser.c tests/http-parser/http_parser.h)
+
     file(GLOB_RECURSE sources "tests/*.cpp" "tests/*.tpp" "tests/*.hpp")
+    execute_process(COMMAND get submodule update --init tests/http-parser)
+    file(GLOB_RECURSE http-parser-files "tests/http-parser/*")
+    list(REMOVE_ITEM sources ${http-parser-files})
     target_sources(webserv-test PRIVATE "${sources}")
 endif()
 
 target_include_directories(webserv-lib PUBLIC src)
 if (WEBSERV_BUILD_TESTS)
+    target_include_directories(http-parser PUBLIC tests/http-parser)
     target_include_directories(webserv-test PUBLIC tests)
 endif()
 
@@ -60,7 +68,7 @@ endif()
 target_link_libraries(webserv webserv-lib)
 if (WEBSERV_BUILD_TESTS)
     FetchContent_MakeAvailable(googletest)
-    target_link_libraries(webserv-test webserv-lib GTest::gtest_main)
+    target_link_libraries(webserv-test webserv-lib GTest::gtest_main http-parser)
 endif()
 
 if (WEBSERV_BUILD_TESTS)
