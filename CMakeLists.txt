@@ -20,12 +20,6 @@ FetchContent_Declare (
     GIT_TAG        v1.14.0
 )
 
-FetchContent_Declare (
-    httpparser
-    GIT_REPOSITORY https://github.com/nekipelov/httpparser.git
-    GIT_TAG        master
-)
-
 option(WEBSERV_BUILD_TESTS "Build webserv test executable" OFF)
 
 if (WEBSERV_BUILD_TESTS)
@@ -66,8 +60,7 @@ endif()
 target_link_libraries(webserv webserv-lib)
 if (WEBSERV_BUILD_TESTS)
     FetchContent_MakeAvailable(googletest)
-    # FetchContent_MakeAvailable(httpparser)
-    target_link_libraries(webserv-test webserv-lib GTest::gtest_main httpparser)
+    target_link_libraries(webserv-test webserv-lib GTest::gtest_main)
 endif()
 
 if (WEBSERV_BUILD_TESTS)

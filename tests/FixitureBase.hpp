@@ -6,7 +6,7 @@
 /*   By: tchoquet <tchoquet@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/07 01:34:14 by tchoquet          #+#    #+#             */
-/*   Updated: 2024/05/07 15:21:32 by tchoquet         ###   ########.fr       */
+/*   Updated: 2024/05/07 15:43:25 by tchoquet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,9 +21,11 @@
 #include "IO/IOManager.hpp"
 #include "IO/IOTask/ReadTask/ClientSocketReadTask.hpp"
 
-#define NGINX_PATH "/bin/nginx"
-
-template<const char* CONF>
+#ifdef NGINX_PATH
+    template<const char* WEBSERV_CONF, const char* NGINX_CONF>
+#else
+    template<const char* WEBSERV_CONF>
+#endif // NGINX_PATH
 class FixitureBase : public testing::Test
 {
 public:
@@ -31,7 +33,7 @@ public:
     {
         webserv::IOManager::init();
 
-        const char* argv[] = { "webserv", CONF };
+        const char* argv[] = { "webserv", WEBSERV_CONF };
         std::vector<webserv::ServerConfig> configs = webserv::parseServerConfig(2, argv);
         webserv::Logger::init(configs[0].error_log);
         webserv::IOManager::shared().loadConfigs(configs);
@@ -65,12 +67,12 @@ public:
 
         #ifdef NGINX_PATH
             m_nginxPID = ::fork();
-            if (m_webservPID < 0)
+            if (m_nginxPID < 0)
                 throw std::runtime_error("fork(): " + std::string(std::strerror(errno)));
-            if (m_webservPID == 0)
+            if (m_nginxPID == 0)
             {
                 char cwd[MAXPATHLEN];
-                const char* argv[] = { "nginx", "-p", getwd(cwd), "-c", CONF, NULL };
+                const char* argv[] = { "nginx", "-p", getwd(cwd), "-c", NGINX_CONF, NULL };
                 const char* envp[] = { NULL };
                 ::execve(NGINX_PATH, (char *const *)argv, (char *const *)envp);
             }
@@ -166,7 +168,7 @@ public:
         ::waitpid(m_webservPID, NULL, 0);
 
         #ifdef NGINX_PATH
-            ::kill(m_nginxPID, SIGKILL);
+            ::kill(m_nginxPID, SIGQUIT);
         #endif // NGINX_PATH
 
         webserv::IOManager::terminate();
