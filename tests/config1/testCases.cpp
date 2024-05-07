@@ -6,7 +6,7 @@
 /*   By: tchoquet <tchoquet@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/07 01:55:03 by tchoquet          #+#    #+#             */
-/*   Updated: 2024/05/07 02:09:29 by tchoquet         ###   ########.fr       */
+/*   Updated: 2024/05/07 15:21:55 by tchoquet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,10 @@ TEST_F(Config1, simpleGET)
     "Host: localhost\r\n"
     "\r\n";
 
-    std::string response = getResponse(request);
+    std::string webservResponse = getWebservResponse(request, 8080);
+    #ifdef NGINX_PATH
+        std::string nginxResponse = getWebservResponse(request, 8090);
+    #endif // NGINX_PATH
 
-    EXPECT_FALSE(response.empty());
+    EXPECT_FALSE(webservResponse.empty());
 }

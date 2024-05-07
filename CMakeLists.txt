@@ -20,6 +20,12 @@ FetchContent_Declare (
     GIT_TAG        v1.14.0
 )
 
+FetchContent_Declare (
+    httpparser
+    GIT_REPOSITORY https://github.com/nekipelov/httpparser.git
+    GIT_TAG        master
+)
+
 option(WEBSERV_BUILD_TESTS "Build webserv test executable" OFF)
 
 if (WEBSERV_BUILD_TESTS)
@@ -27,11 +33,7 @@ if (WEBSERV_BUILD_TESTS)
 endif()
 
 project(webserv LANGUAGES CXX)
-# if (WEBSERV_BUILD_TESTS)
-    # set(CMAKE_CXX_STANDARD 17)
-# else()
-    set(CMAKE_CXX_STANDARD 98)
-# endif()
+set(CMAKE_CXX_STANDARD 98)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_library(webserv-lib)
@@ -64,10 +66,21 @@ endif()
 target_link_libraries(webserv webserv-lib)
 if (WEBSERV_BUILD_TESTS)
     FetchContent_MakeAvailable(googletest)
-    target_link_libraries(webserv-test webserv-lib GTest::gtest_main)
+    # FetchContent_MakeAvailable(httpparser)
+    target_link_libraries(webserv-test webserv-lib GTest::gtest_main httpparser)
 endif()
 
 if (WEBSERV_BUILD_TESTS)
     include(GoogleTest)
     gtest_discover_tests(webserv-test WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 endif()
+
+if (WEBSERV_BUILD_TESTS)
+    find_program(NGINX_PATH nginx)
+    if (NGINX_PATH STREQUAL NGINX_PATH-NOTFOUND)
+        message(STATUS "Nginx not installed, tests will not be able to compare there result with nginx")
+    else()
+        target_compile_definitions(webserv-test PRIVATE NGINX_PATH="${NGINX_PATH}")
+    endif()
+endif()
+    
