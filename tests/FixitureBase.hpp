@@ -6,7 +6,7 @@
 /*   By: tchoquet <tchoquet@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/07 01:34:14 by tchoquet          #+#    #+#             */
-/*   Updated: 2024/05/07 20:02:54 by tchoquet         ###   ########.fr       */
+/*   Updated: 2024/05/07 20:18:02 by tchoquet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,7 +97,7 @@ public:
         };
         parserSettings.on_header_field     = [](http_parser *parser, const char *header, unsigned long len) -> int
         {
-            ((webserv::HTTPResponse*)parser->data)->lastHeaderField = std::string(header, header + len);
+            ((webserv::HTTPResponse*)parser->data)->lastHeaderField = webserv::stringToLower(std::string(header, header + len));
             return 0;
         };
         parserSettings.on_header_value     = [](http_parser *parser, const char *value, unsigned long len) -> int

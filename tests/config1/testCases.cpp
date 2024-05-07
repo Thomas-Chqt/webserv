@@ -6,7 +6,7 @@
 /*   By: tchoquet <tchoquet@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/07 01:55:03 by tchoquet          #+#    #+#             */
-/*   Updated: 2024/05/07 19:38:48 by tchoquet         ###   ########.fr       */
+/*   Updated: 2024/05/07 20:34:03 by tchoquet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,9 +36,35 @@ TEST_F(Config1, simpleGET)
     #endif // NGINX_PATH
 
     #ifdef NGINX_PATH
+        EXPECT_EQ(webservResponse.first,                            nginxResponse.first);
+        EXPECT_EQ(webservResponse.second.statusDescription,         nginxResponse.second.statusDescription);
+        EXPECT_EQ(webservResponse.second.headers["content-length"], nginxResponse.second.headers["content-length"]);
+        EXPECT_EQ(webservResponse.second.body,                      nginxResponse.second.body);
+    #else
+        EXPECT_TRUE(webservResponse.first);
+        EXPECT_EQ(webservResponse.second.statusDescription,         "OK");
+        EXPECT_EQ(webservResponse.second.headers["content-length"], "5");
+    #endif // NGINX_PATH
+}
+
+TEST_F(Config1, lowerCaseMethod)
+{
+    const std::string request = \
+    "get / HTTP/1.1\r\n"
+    "Host: localhost\r\n"
+    "\r\n";
+
+    std::pair<bool, webserv::HTTPResponse> webservResponse = getResponse(request, 8080);
+
+    #ifdef NGINX_PATH
+        std::pair<bool, webserv::HTTPResponse> nginxResponse = getResponse(request, 8090);
+    #endif // NGINX_PATH
+
+    #ifdef NGINX_PATH
         EXPECT_EQ(webservResponse.first, nginxResponse.first);
         EXPECT_EQ(webservResponse.second.statusDescription, nginxResponse.second.statusDescription);
     #else
         EXPECT_TRUE(webservResponse.first);
+        EXPECT_EQ(webservResponse.second.statusDescription, "Bad Request");
     #endif // NGINX_PATH
 }
