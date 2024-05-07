@@ -4,5 +4,5 @@ build/*
 .cache/*
 **/a.out
 **/.DS_Store
-configs/*-local.conf
+*-local.conf
 www/uploads/*
