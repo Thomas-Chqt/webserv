@@ -867,7 +867,7 @@ const LocationDirective& ServerConfig::bestLocation(const std::string& uri)
 
     std::map<uint32, std::vector<LocationDirective>::size_type> map;
 
-    logg << "requested URI: \"" << uri << "\"\n";
+    log << "requested URI: \"" << uri << "\"\n";
 
     for (std::vector<LocationDirective>::size_type i = 0; i != locations.size(); i++) 
     {
@@ -875,18 +875,18 @@ const LocationDirective& ServerConfig::bestLocation(const std::string& uri)
         {
             if (locations[i].location.substr(0, 2) == "*.")
             {
-                logg << "using location: \"" << locations[i].location << "\"\n";
+                log << "using location: \"" << locations[i].location << "\"\n";
                 m_lastLocationIdx = i;
                 return locations[i];
             }
             map[locations[i].location.size()] = i;
-            logg << "matching location: \"" << locations[i].location << "\"\n";
+            log << "matching location: \"" << locations[i].location << "\"\n";
         }
     }
 
     m_lastLocationIdx = (--map.end())->second;
     
-    logg << "using location: \"" << locations[(--map.end())->second].location << "\"\n";
+    log << "using location: \"" << locations[(--map.end())->second].location << "\"\n";
     return locations[(--map.end())->second];
 }
 

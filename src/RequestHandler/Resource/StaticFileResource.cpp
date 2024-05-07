@@ -6,7 +6,7 @@
 /*   By: tchoquet <tchoquet@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/31 18:31:23 by tchoquet          #+#    #+#             */
-/*   Updated: 2024/05/06 12:23:31 by tchoquet         ###   ########.fr       */
+/*   Updated: 2024/05/07 20:44:36 by tchoquet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,10 +32,10 @@ int StaticFileResource::open()
     m_fd = webserv::open(m_path.c_str(), O_RDONLY);
     if (!m_fd)
     {
-        logg << "\"" << m_path << "\": open(): " << std::strerror(errno) << '\n';
+        log << "\"" << m_path << "\": open(): " << std::strerror(errno) << '\n';
         return -1;
     }
-    logg << "File \"" << m_path << "\" opened for reading (fd: " << m_fd << ")\n"; 
+    log << "File \"" << m_path << "\" opened for reading (fd: " << m_fd << ")\n"; 
     return 0;
 }
 

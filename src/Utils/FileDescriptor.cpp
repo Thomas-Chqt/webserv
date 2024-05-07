@@ -6,7 +6,7 @@
 /*   By: tchoquet <tchoquet@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/30 16:34:29 by tchoquet          #+#    #+#             */
-/*   Updated: 2024/05/06 12:23:31 by tchoquet         ###   ########.fr       */
+/*   Updated: 2024/05/07 20:44:36 by tchoquet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -133,7 +133,7 @@ int close(FileDescriptor& fd)
 
     if (*fd.m_refCount == 0)
     {
-        logg << "closing fd " << fd.m_fd << '\n';
+        log << "closing fd " << fd.m_fd << '\n';
         int ret = ::close(fd.m_fd);
         if (ret < 0)
             return ret;

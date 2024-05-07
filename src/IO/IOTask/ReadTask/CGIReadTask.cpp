@@ -6,7 +6,7 @@
 /*   By: tchoquet <tchoquet@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/06 16:14:10 by tchoquet          #+#    #+#             */
-/*   Updated: 2024/05/06 12:23:31 by tchoquet         ###   ########.fr       */
+/*   Updated: 2024/05/07 20:44:36 by tchoquet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,16 +39,16 @@ void CGIReadTask::read()
 
     if (readLen < 0)
     {
-        logg << "Error while reading cgi response (fd: " << fd() << "): " << std::strerror(errno) << '\n';
+        log << "Error while reading cgi response (fd: " << fd() << "): " << std::strerror(errno) << '\n';
         m_handler->makeErrorResponse(502);
     }
 
     else if (readLen >= 0)
     {
         if (readLen == 0)
-            logg << "EOF received on fd: " << fd() << '\n';
+            log << "EOF received on fd: " << fd() << '\n';
         else
-            logg << readLen << " Bytes read on fd: " << fd() << '\n';
+            log << readLen << " Bytes read on fd: " << fd() << '\n';
 
         m_parser.parse(static_cast<uint32>(readLen));
 
@@ -115,7 +115,7 @@ CGIReadTask::~CGIReadTask()
 {
     if (::waitpid(m_pid, NULL, WNOHANG) == 0)
     {
-        logg << "Killing child process with pid: " << m_pid << '\n';
+        log << "Killing child process with pid: " << m_pid << '\n';
         kill(m_pid, SIGKILL);
         ::waitpid(m_pid, NULL, 0);
     }

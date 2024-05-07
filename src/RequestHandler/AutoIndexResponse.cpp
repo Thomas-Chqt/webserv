@@ -6,7 +6,7 @@
 /*   By: tchoquet <tchoquet@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/23 16:50:25 by tchoquet          #+#    #+#             */
-/*   Updated: 2024/05/06 12:23:31 by tchoquet         ###   ########.fr       */
+/*   Updated: 2024/05/07 20:44:36 by tchoquet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,7 @@ static DIR* opendirWrap(const std::string& path, int& responseCode)
     dir = opendir(path.c_str());
     if (dir == NULL)
     {
-        logg << ("[error] opendir(): " + std::string(std::strerror(errno)));
+        log << ("[error] opendir(): " + std::string(std::strerror(errno)));
         if (errno == EACCES)
             responseCode = 403;
         else if (errno == EMFILE || errno == ENFILE || errno == ENOMEM)

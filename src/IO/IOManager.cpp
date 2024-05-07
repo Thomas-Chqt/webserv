@@ -6,7 +6,7 @@
 /*   By: tchoquet <tchoquet@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/18 15:16:58 by tchoquet          #+#    #+#             */
-/*   Updated: 2024/05/06 14:04:09 by tchoquet         ###   ########.fr       */
+/*   Updated: 2024/05/07 20:44:36 by tchoquet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,7 +104,7 @@ void IOManager::selectIOs(std::set<MasterSocketPtr>& masterSockets, std::set<IRe
             ++curr;
         else if ((*curr)->isTimeout())
         {
-            logg << "task timeout, deleting\n";
+            log << "task timeout, deleting\n";
             std::set<IReadTaskPtr>::iterator pos = curr;
             ++curr;
             m_readTasks.erase(pos);
@@ -122,7 +122,7 @@ void IOManager::selectIOs(std::set<MasterSocketPtr>& masterSockets, std::set<IRe
         }
         else if ((*curr)->isTimeout())
         {
-            logg << "task timeout, deleting\n";
+            log << "task timeout, deleting\n";
             std::set<IWriteTaskPtr>::iterator pos = curr;
             ++curr;
             m_writeTasks.erase(pos);

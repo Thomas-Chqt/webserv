@@ -6,7 +6,7 @@
 /*   By: tchoquet <tchoquet@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/13 13:26:07 by tchoquet          #+#    #+#             */
-/*   Updated: 2024/05/06 12:23:31 by tchoquet         ###   ########.fr       */
+/*   Updated: 2024/05/07 20:44:36 by tchoquet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,7 +78,7 @@ SharedPtr<Resource> Resource::create(const std::string& uri, const LocationDirec
     const std::string path = location.translateURI(uri);
     if (::access(path.c_str(), F_OK) != 0)
     {
-        logg << "\"" << location.translateURI(uri) << "\": access(): " << std::strerror(errno) << '\n';
+        log << "\"" << location.translateURI(uri) << "\": access(): " << std::strerror(errno) << '\n';
         return new NoSuchFileResource(location.translateURI(uri));
     }
 
@@ -86,13 +86,13 @@ SharedPtr<Resource> Resource::create(const std::string& uri, const LocationDirec
 
     if (::stat(path.c_str(), &stat) < 0)
     {
-        logg << "\"" << path << "\": stat(): " << std::strerror(errno) << '\n';
+        log << "\"" << path << "\": stat(): " << std::strerror(errno) << '\n';
         return NULL;
     }
 
     if (S_ISDIR(stat.st_mode))
     {
-        logg << "S_ISDIR(stat.st_mode): true\n";
+        log << "S_ISDIR(stat.st_mode): true\n";
         return new DirectoryResource(path);
     }
 
