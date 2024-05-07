@@ -6,7 +6,7 @@
 /*   By: tchoquet <tchoquet@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/07 01:34:14 by tchoquet          #+#    #+#             */
-/*   Updated: 2024/05/07 20:18:02 by tchoquet         ###   ########.fr       */
+/*   Updated: 2024/05/08 01:07:15 by tchoquet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,14 @@
 #endif // NGINX_PATH
 class FixitureBase : public testing::Test
 {
+public:
+    struct response
+    {
+        bool error;
+        bool hasResponded;
+        bool isResponseComplete;
+        webserv::HTTPResponse response;
+    };
 public:
     FixitureBase()
     {
@@ -82,7 +90,7 @@ public:
         usleep(100000);
     }
     
-    std::pair<bool, webserv::HTTPResponse> getResponse(const std::string& request, webserv::uint16 port)
+    FixitureBase::response getResponse(const std::string& request, webserv::uint16 port)
     {
         webserv::HTTPResponse parsedResponse;
 
@@ -147,6 +155,29 @@ public:
         ssize_t recvLen;
         do
         {
+            fd_set fdSet;
+            FD_ZERO(&fdSet);
+            FD_SET(sockfd, &fdSet);
+
+            struct timeval timeVal;
+
+            timeVal.tv_sec = 1;
+            timeVal.tv_usec = 0;
+
+            if (::select(sockfd + 1, &fdSet, NULL, NULL, &timeVal) < 0)
+            {
+                ::close(sockfd);
+                throw std::runtime_error("select(): " + std::string(std::strerror(errno)));
+            }
+
+            if (FD_ISSET(sockfd, &fdSet) == false)
+            {
+                ::close(sockfd);
+                if (responseStr.empty())
+                    return (FixitureBase::response){ .error = false, .hasResponded = false, .isResponseComplete = false, .response = parsedResponse };
+                return (FixitureBase::response){ .error = false, .hasResponded = true, .isResponseComplete = false, .response = parsedResponse };
+            }
+                
             recvLen = ::recv(sockfd, buff, BUFFER_SIZE, 0);
             
             if (recvLen < 0)
@@ -159,7 +190,7 @@ public:
             if (nparsed != (size_t)recvLen)
             {
                 ::close(sockfd);
-                return std::make_pair(false, parsedResponse);
+                return (FixitureBase::response){ .error = true, .hasResponded = true, .isResponseComplete = false, .response = parsedResponse };
             }
 
             if (recvLen == 0)
@@ -171,7 +202,7 @@ public:
 
         ::close(sockfd);
 
-        return std::make_pair(true, parsedResponse);
+        return (FixitureBase::response){ .error = false, .hasResponded = true, .isResponseComplete = true, .response = parsedResponse };
     }
 
     ~FixitureBase()
