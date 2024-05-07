@@ -6,7 +6,7 @@
 /*   By: tchoquet <tchoquet@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/07 01:34:14 by tchoquet          #+#    #+#             */
-/*   Updated: 2024/05/07 19:11:41 by tchoquet         ###   ########.fr       */
+/*   Updated: 2024/05/07 20:02:54 by tchoquet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,6 +78,8 @@ public:
                 ::execve(NGINX_PATH, (char *const *)argv, (char *const *)envp);
             }
         #endif // NGINX_PATH
+
+        usleep(100000);
     }
     
     std::pair<bool, webserv::HTTPResponse> getResponse(const std::string& request, webserv::uint16 port)
