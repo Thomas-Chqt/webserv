@@ -6,7 +6,7 @@
 /*   By: tchoquet <tchoquet@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/07 01:55:03 by tchoquet          #+#    #+#             */
-/*   Updated: 2024/05/07 20:41:21 by tchoquet         ###   ########.fr       */
+/*   Updated: 2024/05/08 00:23:20 by tchoquet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,7 +71,7 @@ TEST_F(Config1, lowerCaseMethod)
 
 TEST_F(Config1, badRequest)
 {
-    const std::string request = "BAD REQUEST";
+    const std::string request = "BAD REQUEST\r\n";
 
     std::pair<bool, webserv::HTTPResponse> webservResponse = getResponse(request, 8080);
 
