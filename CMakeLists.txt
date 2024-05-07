@@ -45,10 +45,10 @@ target_sources(webserv-lib PRIVATE "${sources}")
 target_sources(webserv PRIVATE "src/main.cpp")
 
 if (WEBSERV_BUILD_TESTS)
+    execute_process(COMMAND git submodule update --init ${CMAKE_CURRENT_SOURCE_DIR}/tests/http-parser)
     target_sources(http-parser PRIVATE tests/http-parser/http_parser.c tests/http-parser/http_parser.h)
 
     file(GLOB_RECURSE sources "tests/*.cpp" "tests/*.tpp" "tests/*.hpp")
-    execute_process(COMMAND get submodule update --init tests/http-parser)
     file(GLOB_RECURSE http-parser-files "tests/http-parser/*")
     list(REMOVE_ITEM sources ${http-parser-files})
     target_sources(webserv-test PRIVATE "${sources}")

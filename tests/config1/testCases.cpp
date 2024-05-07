@@ -6,7 +6,7 @@
 /*   By: tchoquet <tchoquet@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/07 01:55:03 by tchoquet          #+#    #+#             */
-/*   Updated: 2024/05/07 19:14:06 by tchoquet         ###   ########.fr       */
+/*   Updated: 2024/05/07 19:38:48 by tchoquet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ TEST_F(Config1, simpleGET)
     std::pair<bool, webserv::HTTPResponse> webservResponse = getResponse(request, 8080);
 
     #ifdef NGINX_PATH
-        std::pair<bool, webserv::HTTPResponse> = getResponse(request, 8090);
+        std::pair<bool, webserv::HTTPResponse> nginxResponse = getResponse(request, 8090);
     #endif // NGINX_PATH
 
     #ifdef NGINX_PATH
