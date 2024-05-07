@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   BuiltinCGIUpload.cpp                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tchoquet <tchoquet@student.42tokyo.jp>     +#+  +:+       +#+        */
+/*   By: sotanaka <sotanaka@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/17 15:58:50 by tchoquet          #+#    #+#             */
-/*   Updated: 2024/05/07 20:44:36 by tchoquet         ###   ########.fr       */
+/*   Updated: 2024/04/26 15:19:52 by sotanaka         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
