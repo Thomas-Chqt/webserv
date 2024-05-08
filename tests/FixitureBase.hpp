@@ -6,7 +6,7 @@
 /*   By: tchoquet <tchoquet@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/07 01:34:14 by tchoquet          #+#    #+#             */
-/*   Updated: 2024/05/08 01:07:15 by tchoquet         ###   ########.fr       */
+/*   Updated: 2024/05/08 15:08:40 by tchoquet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,9 +23,9 @@
 #include "http_parser.h"
 
 #ifdef NGINX_PATH
-    template<const char* WEBSERV_CONF, const char* NGINX_CONF>
+    template<const char* WEBSERV_CONF, const char* NGINX_CONF, int TIMEOUT_SEC>
 #else
-    template<const char* WEBSERV_CONF>
+    template<const char* WEBSERV_CONF, int TIMEOUT_SEC>
 #endif // NGINX_PATH
 class FixitureBase : public testing::Test
 {
@@ -161,7 +161,7 @@ public:
 
             struct timeval timeVal;
 
-            timeVal.tv_sec = 1;
+            timeVal.tv_sec = TIMEOUT_SEC;
             timeVal.tv_usec = 0;
 
             if (::select(sockfd + 1, &fdSet, NULL, NULL, &timeVal) < 0)
@@ -217,6 +217,17 @@ public:
 
         webserv::IOManager::terminate();
         webserv::Logger::terminate();
+
+        int pid = getpid();
+
+        std::string cmd = \
+        "echo \"$(lsof -i -P -n | grep LISTEN | grep 8080 | while read -r first second rest; do echo $second; done ; "\
+        "ps -A | grep webserv | grep -v grep | while read -r first second rest; do echo $first; done ; "\
+        "ps -A | grep nginx | grep -v grep | while read -r first second rest; do echo $first; done)\" | "\
+        "grep -v " + std::to_string(pid) + " | "\
+        "sort | uniq | xargs kill";
+
+        std::system(cmd.c_str());
     }
 
 private:
