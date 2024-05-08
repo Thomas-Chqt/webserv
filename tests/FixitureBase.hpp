@@ -6,7 +6,7 @@
 /*   By: tchoquet <tchoquet@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/07 01:34:14 by tchoquet          #+#    #+#             */
-/*   Updated: 2024/05/08 15:08:40 by tchoquet         ###   ########.fr       */
+/*   Updated: 2024/05/08 19:34:39 by tchoquet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,13 +30,15 @@
 class FixitureBase : public testing::Test
 {
 public:
-    struct response
+    struct Response
     {
-        bool error;
-        bool hasResponded;
-        bool isResponseComplete;
-        webserv::HTTPResponse response;
+        bool hasResponded  = false;
+        bool isComplete    = false;
+        bool isBadResponse = false;
+        webserv::HTTPResponse httpResponse;
+        std::string lastHeaderField;
     };
+
 public:
     FixitureBase()
     {
@@ -90,44 +92,41 @@ public:
         usleep(100000);
     }
     
-    FixitureBase::response getResponse(const std::string& request, webserv::uint16 port)
+    FixitureBase::Response getResponse(const std::string& request, webserv::uint16 port)
     {
-        webserv::HTTPResponse parsedResponse;
-
         http_parser_settings parserSettings;
 
         parserSettings.on_message_begin    = NULL;
         parserSettings.on_url              = NULL;
         parserSettings.on_status           = [](http_parser *parser, const char *status, unsigned long len) -> int
         {
-            ((webserv::HTTPResponse*)parser->data)->statusDescription = std::string(status, status + len);
+            ((Response*)parser->data)->httpResponse.statusDescription = std::string(status, status + len);
             return 0;
         };
         parserSettings.on_header_field     = [](http_parser *parser, const char *header, unsigned long len) -> int
         {
-            ((webserv::HTTPResponse*)parser->data)->lastHeaderField = webserv::stringToLower(std::string(header, header + len));
+            ((Response*)parser->data)->lastHeaderField = webserv::stringToLower(std::string(header, header + len));
             return 0;
         };
         parserSettings.on_header_value     = [](http_parser *parser, const char *value, unsigned long len) -> int
         {
-            ((webserv::HTTPResponse*)parser->data)->headers[((webserv::HTTPResponse*)parser->data)->lastHeaderField] = std::string(value, value + len);
+            ((Response*)parser->data)->httpResponse.headers[((Response*)parser->data)->lastHeaderField] = std::string(value, value + len);
             return 0;
         };
         parserSettings.on_headers_complete = NULL;
         parserSettings.on_body             = [](http_parser *parser, const char *body, unsigned long len) -> int
         {
-            ((webserv::HTTPResponse*)parser->data)->body = std::vector<webserv::Byte>(body, body + len);
+            ((Response*)parser->data)->httpResponse.body = std::vector<webserv::Byte>(body, body + len);
             return 0;
         };
-        parserSettings.on_message_complete = NULL;
+        parserSettings.on_message_complete = [](http_parser *parser) -> int
+        {
+            ((Response*)parser->data)->isComplete = true;
+            return 0;
+        };
         parserSettings.on_chunk_header     = NULL;
         parserSettings.on_chunk_complete   = NULL;
 
-        std::unique_ptr<http_parser> parser = std::make_unique<http_parser>();
-        http_parser_init(parser.get(), HTTP_RESPONSE);
-
-        parser->data = &parsedResponse;
-    
         int sockfd = ::socket(AF_INET, SOCK_STREAM, 0);
 
         struct sockaddr_in server_addr = {
@@ -149,11 +148,15 @@ public:
             throw std::runtime_error("send(): " + std::string(std::strerror(errno)));
         }
 
-        std::string responseStr;
+        std::unique_ptr<http_parser> parser = std::make_unique<http_parser>();
+        FixitureBase::Response response;
+
+        http_parser_init(parser.get(), HTTP_RESPONSE);
+        parser->data = &response;
+
         webserv::Byte buff[BUFFER_SIZE];
 
-        ssize_t recvLen;
-        do
+        for (;;)
         {
             fd_set fdSet;
             FD_ZERO(&fdSet);
@@ -171,38 +174,29 @@ public:
             }
 
             if (FD_ISSET(sockfd, &fdSet) == false)
-            {
-                ::close(sockfd);
-                if (responseStr.empty())
-                    return (FixitureBase::response){ .error = false, .hasResponded = false, .isResponseComplete = false, .response = parsedResponse };
-                return (FixitureBase::response){ .error = false, .hasResponded = true, .isResponseComplete = false, .response = parsedResponse };
-            }
+                break;
                 
-            recvLen = ::recv(sockfd, buff, BUFFER_SIZE, 0);
+            ssize_t recvLen = ::recv(sockfd, buff, BUFFER_SIZE, 0);
             
             if (recvLen < 0)
             {
                 ::close(sockfd);
                 throw std::runtime_error("recv(): " + std::string(std::strerror(errno)));
             }
-
+            response.hasResponded = true;
             size_t nparsed = http_parser_execute(parser.get(), &parserSettings, (const char *)buff, (size_t)recvLen);
             if (nparsed != (size_t)recvLen)
             {
-                ::close(sockfd);
-                return (FixitureBase::response){ .error = true, .hasResponded = true, .isResponseComplete = false, .response = parsedResponse };
+                response.isBadResponse = true;
+                break;
             }
 
-            if (recvLen == 0)
+            if (recvLen == 0 || ((FixitureBase::Response*)parser->data)->isComplete)
                 break;
-
-            responseStr.append(buff, buff + recvLen);
         }
-        while(recvLen == BUFFER_SIZE);
 
         ::close(sockfd);
-
-        return (FixitureBase::response){ .error = false, .hasResponded = true, .isResponseComplete = true, .response = parsedResponse };
+        return response;
     }
 
     ~FixitureBase()
@@ -213,6 +207,7 @@ public:
 
         #ifdef NGINX_PATH
             ::kill(m_nginxPID, SIGQUIT);
+            ::waitpid(m_nginxPID, NULL, 0);
         #endif // NGINX_PATH
 
         webserv::IOManager::terminate();

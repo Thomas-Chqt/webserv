@@ -6,7 +6,7 @@
 /*   By: tchoquet <tchoquet@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/06 16:31:49 by tchoquet          #+#    #+#             */
-/*   Updated: 2024/05/08 14:01:12 by tchoquet         ###   ########.fr       */
+/*   Updated: 2024/05/08 18:43:41 by tchoquet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,7 +65,7 @@ void HTTPResponse::setStatusCode(uint32 code)
         statusDescription = "Bad Gateway";
         break;
     case 504:
-        statusDescription = "Gateway Timeout";
+        statusDescription = "Gateway Time-out";
         break;
     case 505:
         statusDescription = "HTTP Version Not Supported";

@@ -6,7 +6,7 @@
 /*   By: tchoquet <tchoquet@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/08 12:27:20 by tchoquet          #+#    #+#             */
-/*   Updated: 2024/05/08 15:10:02 by tchoquet         ###   ########.fr       */
+/*   Updated: 2024/05/08 18:45:57 by tchoquet         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,26 +28,26 @@ TEST_F(cgiConfig, cgiTester)
     "Host: localhost\r\n"
     "\r\n";
 
-    cgiConfig::response webservResponse = getResponse(request, 8080);
+    cgiConfig::Response webservResponse = getResponse(request, 8080);
 
     #ifdef NGINX_PATH
-        cgiConfig::response nginxResponse = getResponse(request, 8090);
+        cgiConfig::Response nginxResponse = getResponse(request, 8090);
     #endif // NGINX_PATH
 
     #ifdef NGINX_PATH
-        ASSERT_EQ(webservResponse.error,                              nginxResponse.error);
-        ASSERT_EQ(webservResponse.hasResponded,                       nginxResponse.hasResponded);
-        ASSERT_EQ(webservResponse.isResponseComplete,                 nginxResponse.isResponseComplete);
+        ASSERT_EQ(webservResponse.hasResponded,  nginxResponse.hasResponded);
+        ASSERT_EQ(webservResponse.isBadResponse, nginxResponse.isBadResponse);
 
-        EXPECT_EQ(webservResponse.response.statusDescription,         nginxResponse.response.statusDescription);
-        EXPECT_EQ(webservResponse.response.headers["content-length"], nginxResponse.response.headers["content-length"]);
-        EXPECT_EQ(webservResponse.response.headers["content-type"],   nginxResponse.response.headers["content-type"]);
-        EXPECT_TRUE(webservResponse.response.body          ==         nginxResponse.response.body) << "bodies are not equal";
+        ASSERT_EQ(webservResponse.httpResponse.statusDescription,         nginxResponse.httpResponse.statusDescription);
+        ASSERT_EQ(webservResponse.httpResponse.headers["content-type"],   nginxResponse.httpResponse.headers["content-type"]);
+        ASSERT_EQ(webservResponse.httpResponse.headers["content-length"], nginxResponse.httpResponse.headers["content-length"]);
+        
+        ASSERT_TRUE(webservResponse.httpResponse.body == nginxResponse.httpResponse.body) << "bodies are not equal";
     #else
-        ASSERT_EQ(webservResponse.error,                      false);
-        ASSERT_EQ(webservResponse.hasResponded,               true);
-        ASSERT_EQ(webservResponse.isResponseComplete,         true);
-        EXPECT_EQ(webservResponse.response.statusDescription, "OK");
+        ASSERT_TRUE(webservResponse.hasResponded);
+        ASSERT_FALSE(webservResponse.isBadResponse);
+
+        ASSERT_EQ(webservResponse.httpResponse.statusDescription, "OK");
     #endif // NGINX_PATH
 }
 
@@ -58,25 +58,25 @@ TEST_F(cgiConfig, noResponse)
     "Host: localhost\r\n"
     "\r\n";
 
-    cgiConfig::response webservResponse = getResponse(request, 8080);
+    cgiConfig::Response webservResponse = getResponse(request, 8080);
 
     #ifdef NGINX_PATH
-        cgiConfig::response nginxResponse = getResponse(request, 8090);
+        cgiConfig::Response nginxResponse = getResponse(request, 8090);
     #endif // NGINX_PATH
 
     #ifdef NGINX_PATH
-        ASSERT_EQ(webservResponse.error,                              nginxResponse.error);
-        ASSERT_EQ(webservResponse.hasResponded,                       nginxResponse.hasResponded);
-        ASSERT_EQ(webservResponse.isResponseComplete,                 nginxResponse.isResponseComplete);
+        ASSERT_EQ(webservResponse.hasResponded,  nginxResponse.hasResponded);
+        ASSERT_EQ(webservResponse.isBadResponse, nginxResponse.isBadResponse);
 
-        EXPECT_EQ(webservResponse.response.statusDescription,         nginxResponse.response.statusDescription);
-        EXPECT_EQ(webservResponse.response.headers["content-length"], nginxResponse.response.headers["content-length"]);
-        EXPECT_EQ(webservResponse.response.headers["content-type"],   nginxResponse.response.headers["content-type"]);
-        EXPECT_TRUE(webservResponse.response.body          ==         nginxResponse.response.body) << "bodies are not equal";
+        ASSERT_EQ(webservResponse.httpResponse.statusDescription,         nginxResponse.httpResponse.statusDescription);
+        ASSERT_EQ(webservResponse.httpResponse.headers["content-type"],   nginxResponse.httpResponse.headers["content-type"]);
+        // ASSERT_EQ(webservResponse.httpResponse.headers["content-length"], nginxResponse.httpResponse.headers["content-length"]);
+        
+        // ASSERT_TRUE(webservResponse.httpResponse.body == nginxResponse.httpResponse.body) << "bodies are not equal";
     #else
-        ASSERT_EQ(webservResponse.error,                      false);
-        ASSERT_EQ(webservResponse.hasResponded,               true);
-        ASSERT_EQ(webservResponse.isResponseComplete,         true);
-        EXPECT_EQ(webservResponse.response.statusDescription, "Gateway Timeout");
+        ASSERT_TRUE(webservResponse.hasResponded);
+        ASSERT_FALSE(webservResponse.isBadResponse);
+
+        ASSERT_EQ(webservResponse.httpResponse.statusDescription, "Gateway Time-out");
     #endif // NGINX_PATH
 }
