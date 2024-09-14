@@ -7,3 +7,4 @@ build/*
 configs/*-local.conf
 www/uploads/*
 build.nosync/
+*.drawio.svg
